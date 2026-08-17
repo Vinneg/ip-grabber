@@ -1,0 +1,9 @@
+# Включение планировщика Spring
+spring:
+  task:
+    scheduling:
+      enabled: true
+# Опционально: настройка логов
+  logging:
+    level:
+      com.example.netstat: INFO
