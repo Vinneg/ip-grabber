@@ -46,13 +46,11 @@ public class NetStatService {
             }
 
             try (BufferedReader reader = Files.newBufferedReader(ipsFile)) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    String trimmed = line.trim();
-
-                    if (!trimmed.isEmpty()) {
-                        ips.add(trimmed);
-                    }
+                for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+                    Optional.of(line)
+                            .map(String::trim)
+                            .filter(v->!v.isBlank())
+                            .ifPresent(ips::add);
                 }
             }
 
@@ -83,22 +81,19 @@ public class NetStatService {
     @Scheduled(fixedRate = 20, timeUnit = TimeUnit.SECONDS)
     public void monitor() {
         try {
-            Process process = Runtime.getRuntime().exec("netstat -ano");
+            Process process = Runtime.getRuntime()
+                    .exec("netstat -ano");
 
             final Set<String> newIps = new HashSet<>();
 
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
+                for (String line = reader.readLine(); line != null; line = reader.readLine()) {
                     Optional.of(line)
                             .map(IP_PATTERN::matcher)
                             .filter(Matcher::find)
                             .map(v -> v.group(1))
                             .filter(v -> !ips.contains(v))
-                            .ifPresent(ip -> {
-                                ips.add(ip);
-                                newIps.add(ip);
-                            });
+                            .ifPresent(newIps::add);
                 }
             }
 
@@ -109,6 +104,7 @@ public class NetStatService {
 
             if (!newIps.isEmpty()) {
                 appendIps(newIps);
+                ips.addAll(newIps);
             }
         } catch (IOException | InterruptedException e) {
             log.error("Error running netstat: {}", e.getMessage(), e);
