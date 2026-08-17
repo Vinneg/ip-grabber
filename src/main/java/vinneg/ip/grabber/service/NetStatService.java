@@ -50,10 +50,8 @@ public class NetStatService {
                 while ((line = reader.readLine()) != null) {
                     String trimmed = line.trim();
 
-                    if (!trimmed.isEmpty() && IP_PATTERN.matcher(trimmed).matches()) {
+                    if (!trimmed.isEmpty()) {
                         ips.add(trimmed);
-                    } else if (!trimmed.isEmpty()) {
-                        log.warn("Skipping invalid IP line: {}", line);
                     }
                 }
             }
@@ -82,7 +80,7 @@ public class NetStatService {
     }
 
 
-    @Scheduled(fixedRate = 1, timeUnit = TimeUnit.MINUTES)
+    @Scheduled(fixedRate = 20, timeUnit = TimeUnit.SECONDS)
     public void monitor() {
         try {
             Process process = Runtime.getRuntime().exec("netstat -ano");
